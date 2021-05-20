@@ -10,6 +10,8 @@ Csv file with the columns:
  * money_size_new_users_by_network: new users adquired on money size by network behaviour.
  * subsidy_size_new_users_by_campaign: new users adquired on sudsidy size by performing comercial / marketing actions.
  * subsidy_size_new_users_by_network: new users adquired on sudsidy size by network behaviour.
+ * investement_in_money_size_campaigns: total money invested in the growth of money size.
+ * investement_in_sudsidy_size_campaigns: total money invested in the growth of sudsidy size.
 
 
 ### Pipeline
@@ -22,3 +24,4 @@ Csv file with the columns:
 
 * Simulator
 * model_trainer
+* campaign_control
