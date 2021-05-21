@@ -1,4 +1,5 @@
 from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 import pandas as pd
 import numpy as np
@@ -28,7 +29,7 @@ class model_trainer:
             "random_state": kwargv["random_state"] if "random_state" in kwargv.keys() else 42,
         })
 
-        self._model = model(random_state = params["random_state"])
+        self._model = model()
         # TODO: Add hyper params optimization <---------------------------
         self._model.fit(self.X_train, self.y_train)
 
@@ -57,14 +58,14 @@ class simulator:
 
         # Train regression model for money side
         self._model_money_size_campaign = model_trainer(data, "money_size_new_users_by_campaign", "money")
-        self._model_money_size_campaign.train(RandomForestRegressor , {"random_state":0}, **kwargv)
+        self._model_money_size_campaign.train(RandomForestRegressor , {"random_state" : 0}, **kwargv)
         self._model_money_size_network = model_trainer(data, "money_size_new_users_by_network")
-        self._model_money_size_network.train(RandomForestRegressor , {"random_state":0}, **kwargv)
+        self._model_money_size_network.train(LinearRegression , {}, **kwargv)
         # Train regression models for sudsidy side
         self._model_subsidy_size_campaign = model_trainer(data, "subsidy_size_new_users_by_campaign", "sudsidy")
-        self._model_subsidy_size_campaign.train(RandomForestRegressor , {"random_state":0}, **kwargv)
+        self._model_subsidy_size_campaign.train(RandomForestRegressor , {"randon_state": 0}, **kwargv)
         self._model_subsidy_size_network = model_trainer(data, "subsidy_size_new_users_by_network")
-        self._model_subsidy_size_network.train(RandomForestRegressor , {"random_state":0}, **kwargv)
+        self._model_subsidy_size_network.train(LinearRegression , {}, **kwargv)
 
     def _simulate_one_period(self, campaigns):
         # Make predictions
