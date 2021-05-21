@@ -43,12 +43,13 @@ class model_trainer:
 
 class campaign_control:
 
-    def __init__(self, value_to_invest):
+    def __init__(self, value_to_invest, add_random = True):
         self._value_to_invest = value_to_invest
+        self._add_random = add_random
 
     def get_investement(self):
         # TODO: make a investement based on actual state of platform
-        return self._value_to_invest
+        return self._value_to_invest * ((1 + np.random.uniform(-0.1,0.1,1)[0]) if self._add_random else 0)
 
 class simulator:
 
