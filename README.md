@@ -2,7 +2,7 @@
 
 ### Input
 
-Csv file with the columns:
+CSV file with the columns:
  * date: date of data colection.
  * money_size_users: total users on the money size of the platform (at the end of the day).
  * subsidy_size_users: total users on the subsify size of the platform (at the end of the day).
@@ -13,15 +13,19 @@ Csv file with the columns:
  * investement_in_money_size_campaigns: total money invested in the growth of money size.
  * investement_in_sudsidy_size_campaigns: total money invested in the growth of sudsidy size.
 
+A example CSV od simulated data could be created with the ´simulate_base_data.py´ file.
 
 ### Pipeline
 
-1. Read the data.
-2. Train a ML model to predict new users on each size by network behaviour.
-3. Simulate days until the new users by network behaviour are greater than the users by campaigns in both sides.
+1. Create data file.
+2. Create a campaign_control object based on campaigns investement.
+3. Create a simulator object.
+4. Use the ´simulate´ method, which return two values
+  * The number of periods simulated.
+  * If the critical mass was reached in the simulated periods.
 
 ### Objects:
 
-* Simulator
-* model_trainer
-* campaign_control
+* Simulator.
+* model_trainer.
+* campaign_control.
