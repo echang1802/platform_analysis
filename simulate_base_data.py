@@ -5,10 +5,10 @@ from datetime import datetime, timedelta
 
 # Auxiliar functions
 def campaign_new_users(campaign):
-    return np.round(np.max([np.power(campaign / 100, 2) + np.random.uniform(-10,10,1)[0], 0]))
+    return np.round(np.max([np.power(campaign / 200, 2) + np.random.uniform(-10,10,1)[0], 0]))
 
 def network_new_users(users):
-    return np.round((users / 200) + np.random.uniform(-10,10,1)[0])
+    return np.round((users / 500) + np.random.uniform(-10,10,1)[0])
 
 def camapign_variation(campaign):
     return campaign * (1 + np.random.uniform(-0.1,0.1,1)[0])
