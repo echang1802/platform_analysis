@@ -13,7 +13,7 @@ CSV file with the columns:
  * investement_in_money_size_campaigns: total money invested in the growth of money size.
  * investement_in_sudsidy_size_campaigns: total money invested in the growth of sudsidy size.
 
-A example CSV od simulated data could be created with the ´simulate_base_data.py´ file.
+A example CSV simulated data could be created with the ´simulate_base_data.py´ file.
 
 ### Pipeline
 
