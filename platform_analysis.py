@@ -1,6 +1,8 @@
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
+import seaborn as sns
+import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
@@ -39,7 +41,7 @@ class model_trainer:
             self.X_train = np.asarray(self.X_train).reshape(-1,1)
 
     def predict(self, data):
-        return self._model.predict(data)
+        return np.round(self._model.predict(data) * (1 + np.random.uniform(-0.3, 0.3)))
 
 class campaign_control:
 
@@ -68,9 +70,13 @@ class simulator:
         self._model_subsidy_size_network = model_trainer(data, "subsidy_size_new_users_by_network")
         self._model_subsidy_size_network.train(LinearRegression , {}, **kwargv)
 
-    def _simulate_one_period(self, campaigns):
+        # Record users:
+        self.money_size = data.money_size_users.iloc[-1]
+        self.subsidy_size = data.subsidy_size_users.iloc[-1]
+
+    def _simulate_one_period(self):
         # Make predictions
-        money_size_new_users_by_campaign = self._model_money_size_campaign.predict(self._campaigns) # What is data?
+        money_size_new_users_by_campaign = self._model_money_size_campaign.predict(self._campaigns)
         money_size_new_users_by_network = self._model_money_size_network.predict(self._data)
         subsidy_size_new_users_by_campaign = self._model_subsidy_size_campaign.predict(self._campaigns)
         subsidy_size_new_users_by_network = self._model_subsidy_size_network.predict(self._data)
@@ -78,7 +84,7 @@ class simulator:
         self.money_size += (money_size_new_users_by_network + money_size_new_users_by_campaign)
         self.subsidy_size += (subsidy_size_new_users_by_network + subsidy_size_new_users_by_campaign)
 
-        return (money_size_new_users_by_network + subsidy_size_new_users_by_network) > self._tol * (money_size_new_users_by_campaign + subsidy_size_new_users_by_campaign)
+        return money_size_new_users_by_network, subsidy_size_new_users_by_network, money_size_new_users_by_campaign, subsidy_size_new_users_by_campaign
 
     def _get_data(self, campaigns):
         self._data = pd.DataFrame({
@@ -86,22 +92,59 @@ class simulator:
             "subsidy_size_users" : self.subsidy_size
         }, index = {0})
         self._campaigns = pd.DataFrame({
-            "investement" : campaigns.get_investement()
+            "investement" : campaigns
         }, index = {0})
 
-    def simulate(self, users, campaigns, periods_to_evolve = 1, max_periods = 1000):
-        self.money_size = users["money_size"]
-        self.subsidy_size = users["subsidy_size"]
+    def get_critical_mass_stats(self, simulations = 1000, **kwarg):
+        self._raw_stats = {"periods_to_reach_cm": np.array(), "reached": np.array()}
+        for sim in range(simulations):
+            periods, reached = self._simulate(kwarg)
+            self._raw_stats["periods_to_reach_cm"].append(periods)
+            self._raw_stats["reached"].append(reached)
+
+        self._generate_stats()
+        self._generate_plot()
+
+    def _generate_stats(self):
+        self.stats = {
+            "reached" : {
+                "Total" : self._raw_stats["reached"].sum(),
+                "Percent" : self._raw_stats["reached"].mean()
+            },
+            "periods": {
+                "Min" : self._raw_stats["periods_to_reach_cm"].min(),
+                "Qt1" : np.quantile(self._raw_stats["periods_to_reach_cm"], 0.25),
+                "Mean" : self._raw_stats["periods_to_reach_cm"].mean(),
+                "Median" : np.quantile(self._raw_stats["periods_to_reach_cm"], 0.5),
+                "Qt3" : np.quantile(self._raw_stats["periods_to_reach_cm"], 0.75),
+                "Qt1" : np.quantile(self._raw_stats["periods_to_reach_cm"], 0.25),
+                "Max" : self._raw_stats["periods_to_reach_cm"].max()
+            }
+        }
+
+    def _generate_plot(self):
+        pass
+
+    def _simulate(self, campaigns, periods_to_evolve = 1, max_periods = 1000):
         periods = 0
         periods_count = 0
         ready = False
+        periods_stats = pd.DataFrame()
         while not ready:
-            self._get_data(campaigns)
-            good_period = self._simulate_one_period(campaigns)
+            self._get_data(campaigns.get_investement())
+            money_size_new_users_by_network, subsidy_size_new_users_by_network, money_size_new_users_by_campaign, subsidy_size_new_users_by_campaign = self._simulate_one_period()
+            good_period = (money_size_new_users_by_network + subsidy_size_new_users_by_network) > self._tol * (money_size_new_users_by_campaign + subsidy_size_new_users_by_campaign)
+            periods_stats = periods_stats.append(pd.DataFrame({
+                "money_size_new_users_by_network" : money_size_new_users_by_network,
+                "subsidy_size_new_users_by_network" : subsidy_size_new_users_by_network,
+                "money_size_new_users_by_campaign" : money_size_new_users_by_campaign,
+                "subsidy_size_new_users_by_campaign" : subsidy_size_new_users_by_campaign,
+                "campaign_investement" : self._campaigns.investement.values[0]
+            }, index = { periods }))
             if good_period:
                 periods_count += 1
             else:
                 periods_count = 0
             periods += 1
             ready = periods_count >= periods_to_evolve or periods >= max_periods
-        return periods, periods_count >= periods_to_evolve
+        return periods, periods_count >= periods_to_evolve, periods_stats
